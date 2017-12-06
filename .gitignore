@@ -21,4 +21,4 @@ node_modules/
 ## Jest ##
 coverage/
 
-dist/
+dist/*
