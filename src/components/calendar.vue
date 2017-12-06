@@ -18,20 +18,25 @@
                 <div class="week-row" v-for="week in calendar">
                     <div v-for="day in week"
                          class="week-day-cell"
-                         :class="{  'today': day.isToday,
-                                    'weekend': day.isWeekend,
-                                    'saturday': day.isSaturday,
-                                    'sunday': day.isSunday,
-                                    'disabled': isDayDisabled(day),
-                                    'highlighted': isDayHighlighted(day),
-                                    'not-current-month': !day.isCurrentMonth }"
-                         @click.stop="dayClick(day)">
+                         :class="{
+                            'today': day.isToday,
+                            'weekend': day.isWeekend,
+                            'saturday': day.isSaturday,
+                            'sunday': day.isSunday,
+                            'disabled': isDayDisabled(day),
+                            'highlighted': isDayHighlighted(day),
+                            'not-current-month': !day.isCurrentMonth,
+                            'current-month': day.isCurrentMonth
+                          }"
+                          @click.stop="dayClick(day)">
                         <div class="day-number">
                             {{ day.monthDay }}
                         </div>
                         <events-box
                                 :events="day.events"
                                 :show-limit="showLimit"
+                                :day="day"
+                                :locale="locale"
                                 @eventClicked="eventClicked"
                                 @showMore="showEventsModal"
                         >
@@ -67,34 +72,34 @@
               type : Number | String,
               default : 0
             },
-	          fullMonthNames:  {
-            	type: Boolean,
+            fullMonthNames:  {
+              type: Boolean,
               default: true
             },
             fullDayNames: {
-	            type: Boolean,
-	            default: false
+              type: Boolean,
+              default: false
             },
             showLimit: {
-            	type: Number,
+              type: Number,
               default: 3
             },
             moreText: {
-            	type: String,
+              type: String,
               default: 'Show more'
             },
             disabled: {
-            	type: Object,
+              type: Object,
               default: () => { return {}; }
             },
             highlight: {
-            	type: Object,
+              type: Object,
               default: () => { return {}; }
             }
         },
         data () {
           return {
-          	showModal: false,
+            showModal: false,
             currentEventsList: null,
             disabledDays: this.disabled,
             highlightDays: this.highlight,
@@ -118,13 +123,16 @@
           changeMonth: function (monthStart) {
             this.currentMonthStart = monthStart;
             let monthEnd = dateHelper.lastDateOfMonth(new Date(monthStart));
-	          this.$emit('monthChanged', monthStart, monthEnd);
+            this.$emit('month-changed', monthStart, monthEnd);
           },
           dayClick: function (day) {
-            this.$emit('dayClicked', day);
+            // пока только по текущему месяцу
+            if ( day.isCurrentMonth ) {
+              this.$emit('day-clicked', day);
+            }
           },
-          eventClicked: function(event) {
-          	this.$emit('eventClicked', event);
+          eventClicked: function(event, day) {
+            this.$emit('event-clicked', event, day);
           },
           showEventsModal: function(events) {
             this.currentEventsList = events;
@@ -223,5 +231,8 @@
     .week-day-cell.today > .day-number{
         font-weight: bold;
         color: red;
+    }
+    .week-day-cell.current-month{
+        cursor: pointer;
     }
 </style>
